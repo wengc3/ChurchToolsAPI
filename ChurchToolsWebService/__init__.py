@@ -4,7 +4,6 @@ from flask import Flask, render_template, request, redirect, session
 from flask_session import Session
 
 from ChurchToolsApi import ChurchToolsApi as CTAPI
-from secure.defaults import domain
 
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
@@ -32,7 +31,7 @@ def login():
         user = request.form['user']
         password = request.form['password']
 
-        session['ct_api'] = CTAPI(domain, ct_user=user, ct_password=password)
+        session['ct_api'] = CTAPI(app.domain, ct_user=user, ct_password=password)
         if session['ct_api'].who_am_i() is not False:
             return redirect('/main')
 
@@ -45,7 +44,7 @@ def login():
 @app.route('/main')
 def main():
     user = session['ct_api'].who_am_i()
-    return render_template('main.html', user=user, domain=domain)
+    return render_template('main.html', user=user, domain=app.domain)
 
 
 if __name__ == '__main__':
