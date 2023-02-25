@@ -5,12 +5,15 @@ WORKDIR /app
 COPY docker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY __init__.py .
 COPY docker/docker_main_web.py .
-COPY static static/
-COPY templates templates/
+COPY static static
+COPY templates templates
 
-RUN pip install --no-cache-dir git+https://github.com/bensteUEM/ChurchToolsAPI.git@v1.2.0.2#egg=ChurchToolsAPI
+RUN pip install --no-cache-dir git+https://github.com/bensteUEM/ChurchToolsAPI.git@v1.2.0.3#egg=ChurchToolsAPI
 
-CMD [ "python", "-m", "docker_main_web"]
+#CMD [ "python", "docker_main_web.py"]
+CMD [ "python", "-m", "__init__"]
+
 
 EXPOSE 5000

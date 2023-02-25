@@ -5,7 +5,7 @@ from flask_session import Session
 
 from ChurchToolsApi import ChurchToolsApi as CTAPI
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__)
 app.secret_key = os.urandom(16)
 
 app.config["SESSION_PERMANENT"] = False
@@ -48,5 +48,6 @@ def main():
 
 
 if __name__ == '__main__':
-    app.domain = 'YOUR-DOMAIN' #TODO #45
-    app.run(debug=True)
+    domain = os.environ.get('domain')
+    app.domain = domain
+    app.run(debug=True, host='0.0.0.0')
