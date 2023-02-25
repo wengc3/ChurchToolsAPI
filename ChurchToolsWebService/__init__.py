@@ -46,9 +46,3 @@ def login():
 def main():
     user = session['ct_api'].who_am_i()
     return render_template('main.html', user=user, domain=app.domain)
-
-
-if __name__ == '__main__':
-    domain = os.environ.get('domain')
-    app.domain = domain
-    app.run(debug=True, host='0.0.0.0')

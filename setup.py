@@ -5,7 +5,7 @@ with open("README.md", "r") as file:
 
 setup(
     name='ChurchToolsApi',
-    version='1.2.1',
+    version='1.2.1.1',
     author='bensteUEM',
     author_email='benedict.stein@gmail.com',
     description='A python package to make use of ChurchTools API',

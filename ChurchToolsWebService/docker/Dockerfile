@@ -4,11 +4,8 @@ WORKDIR /app
 
 COPY docker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir git+https://github.com/bensteUEM/ChurchToolsAPI.git@v1.2.1#egg=ChurchToolsAPI
+RUN pip install --no-cache-dir git+https://github.com/bensteUEM/ChurchToolsAPI.git@v1.2.1.1#egg=ChurchToolsAPI
 
-COPY docker/docker_main_web.py .
-
-
-CMD [ "python", "docker_main_web.py"]
+CMD [ "python", "-m", "ChurchToolsWebService"]
 
 EXPOSE 5000
