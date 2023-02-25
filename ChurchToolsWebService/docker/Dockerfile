@@ -10,7 +10,7 @@ COPY docker/docker_main_web.py .
 COPY static static
 COPY templates templates
 
-RUN pip install --no-cache-dir git+https://github.com/bensteUEM/ChurchToolsAPI.git@v1.2.0.4#egg=ChurchToolsAPI
+RUN pip install --no-cache-dir git+https://github.com/bensteUEM/ChurchToolsAPI.git@v1.2.0.5#egg=ChurchToolsAPI
 
 CMD [ "python", "docker_main_web.py"]
 #CMD [ "python", "-m", "__init__"]
