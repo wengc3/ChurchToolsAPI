@@ -133,6 +133,16 @@ class ChurchToolsApiEvents(ChurchToolsApiAbstract):
                 to_ = to_.astimezone(pytz.utc).strftime("%Y-%m-%d")
             if len(to_) == LENGTH_OF_DATE_WITH_HYPHEN:
                 params["to"] = to_
+            if from_ == to_:
+                logger.warning(
+                    "As of 29. Sept 2024 there is a known bug"
+                    " which will not return results for same day searches!"
+                    " - reported to CT team as issue 130629 - github #109",
+                )
+                params["to"] = (kwargs["to_"] + timedelta(days=1)).strftime(
+                    "%Y-%m-%d"
+                )  # TODO@bensteUEM: CT sameday inconsistency reported as CT 130629
+                # https://github.com/bensteUEM/ChurchToolsAPI/issues/109
         elif "to_" in kwargs:
             logger.warning("Use of to_ is only allowed together with from_")
         return params
