@@ -234,24 +234,30 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
         """
         SAMPLE_GROUP_ID = 103
         SAMPLE_MEMBER_ID = 513
-        SAMPLE_GROUPTYPE_ROLE_ID = 15
+
+        # check comment is empty as prerequisite
+        pre_test_user_state = self.api.get_group_members(
+            group_id=SAMPLE_GROUP_ID, person_ids=[SAMPLE_MEMBER_ID]
+        )[0]
+        assert pre_test_user_state.get("comment") is None
+
+        # set a new sample comment
         data = {"comment": "Updated Over API"}
         group_member_update_result = self.api.update_group_member(
-            group_id=SAMPLE_GROUP_ID,
-            member_id=SAMPLE_MEMBER_ID, 
-            data=data
+            group_id=SAMPLE_GROUP_ID, person_id=SAMPLE_MEMBER_ID, data=data
         )
         assert group_member_update_result["comment"] == data["comment"]
 
+        # cleanup / delete comment after test
         group_member_update_result = self.api.update_group_member(
             group_id=SAMPLE_GROUP_ID,
-            member_id=SAMPLE_MEMBER_ID,
-            data={"comment": ""},
+            person_id=SAMPLE_MEMBER_ID,
+            data={"comment": None},
         )
         members = self.api.get_group_members(
-            group_id=SAMPLE_GROUP_ID,
-            role_ids=[SAMPLE_GROUPTYPE_ROLE_ID],)
-        assert members[0]["comment"] == ""
+            group_id=SAMPLE_GROUP_ID, person_ids=[SAMPLE_MEMBER_ID]
+        )
+        assert members[0]["comment"] is None
 
     def test_get_group_members(self) -> None:
         """Checks if group members can be retrieved.
@@ -263,13 +269,16 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
         """
         SAMPLE_GROUP_ID = 103
         SAMPLE_GROUPTYPE_ROLE_ID = 16
-        members = self.api.get_group_members(group_id=SAMPLE_GROUP_ID)
+        SAMPLE_USER_ID = 513
 
+        # 1. retrieve all group member by group_id
+        members = self.api.get_group_members(group_id=SAMPLE_GROUP_ID)
         assert members is not None
         assert members != []
         for member in members:
             assert "personId" in member
 
+        # 2. retrieve group members by role
         members = self.api.get_group_members(
             group_id=SAMPLE_GROUP_ID,
             role_ids=[SAMPLE_GROUPTYPE_ROLE_ID],
@@ -280,11 +289,19 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
             assert "personId" in member
             assert member["groupTypeRoleId"] == SAMPLE_GROUPTYPE_ROLE_ID
 
-    def test_get_group_memberfields(self) -> None:
-        """Checks if group member fields can be retrieved.
+        # 3. retrieve group members by person_id
+        members = self.api.get_group_members(
+            group_id=SAMPLE_GROUP_ID,
+            person_ids=[SAMPLE_USER_ID],
+        )
+        assert members is not None
+        assert members != []
+        assert len(members) == 1
+        assert members[0]["personId"] == SAMPLE_USER_ID
 
-        from the group.
-        
+    def test_get_group_memberfields(self) -> None:
+        """Checks if group member fields can be retrieved from a group.
+
         IMPORTANT - This test method and the parameters used depend on target system!
         the hard coded sample exists on ELKW1610.KRZ.TOOLS
         """
@@ -300,7 +317,7 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
     def test_get_groups_members(self) -> None:
         """Check that a list of groups is received.
 
-        when asking by person and optional role id.
+        when requesting by person and optional role id.
 
         IMPORTANT - This test method and the parameters used depend on target system!
         the hard coded sample exists on ELKW1610.KRZ.TOOLS
