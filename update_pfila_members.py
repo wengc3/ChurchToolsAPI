@@ -142,7 +142,7 @@ def update_child_members(api: ChurchToolsApi, group_id: int, pfila_members: list
         }
         api.update_group_member(
             group_id=group_id,
-            member_id=member["personId"],
+            person_id=member["personId"],
             data={
                 "comment": "Updated over API",
                 "fields": fields,
