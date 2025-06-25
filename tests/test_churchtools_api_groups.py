@@ -125,7 +125,7 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
         IMPORTANT - This test method and the parameters used depend on target system!
         the hard coded sample exists on ELKW1610.KRZ.TOOLS.
 
-
+        0. delete any group which contains sample group name to have clean system setup
         1.  with minimal parameters.
         2. More complex group information
         3. Checks if a group can not be created with name of an existing group
@@ -135,9 +135,15 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
         SAMPLE_NEW_GROUP_TYPE = 2
         SAMPLE_GROUP_STATUS_ID = 1
         SAMPLE_CAMPUS_ID = 0
+        SAMPLE_GROUP_NAME = "TestGroup"
+        SAMPLE_GROUP_NAME2 = "TestGroup With Campus And Superior"
+
+        # 0. cleanup delete existing groups which contain name sample_group_name
+        existing_groups = self.api.get_groups(query=SAMPLE_GROUP_NAME)
+        for group in existing_groups:
+            self.api.delete_group(group_id=group["id"])
 
         # 1. minimal group
-        SAMPLE_GROUP_NAME = "TestGroup"
 
         group1 = self.api.create_group(
             SAMPLE_GROUP_NAME,
@@ -150,7 +156,6 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
         assert group1["information"]["groupStatusId"] == SAMPLE_GROUP_STATUS_ID
 
         # 2. more complex group
-        SAMPLE_GROUP_NAME2 = "TestGroup With Campus And Superior"
         group2 = self.api.create_group(
             SAMPLE_GROUP_NAME2,
             group_status_id=SAMPLE_GROUP_STATUS_ID,
@@ -174,8 +179,8 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
             )
         assert group3 is None
         EXPECTED_MESSAGES = [
-            'Duplikat gefunden. Nutze das "force" Flag, um'
-            " die Gruppe trotzdem anzulegen."
+            "Es gibt bereits eine Gruppe mit diesem Namen. "
+            "Soll die Gruppe trotzdem angelegt werden?"
         ]
         assert caplog.messages == EXPECTED_MESSAGES
 
@@ -304,12 +309,14 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
 
         IMPORTANT - This test method and the parameters used depend on target system!
         the hard coded sample exists on ELKW1610.KRZ.TOOLS
+        At least one memberfield must exist in sample group
         """
         SAMPLE_GROUP_ID = 103
         memberfields = self.api.get_group_memberfields(group_id=SAMPLE_GROUP_ID)
 
         assert memberfields is not None
         assert memberfields != []
+
         for memberfield in memberfields:
             assert "type" in memberfield
             assert "id" in memberfield["field"]
@@ -370,13 +377,15 @@ class TestChurchtoolsApiGroups(TestsChurchToolsApiAbstract):
         the hard coded sample exists on ELKW1610.KRZ.TOOLS.
         """
         SAMPLE_GROUP_ID = 103
-        SAMPLE_PERSON_ID = 229
+        SAMPLE_PERSON_ID = 1109
         SAMPLE_GROUPTYPE_ROLE_ID = 15
+        SAMPLE_GROUP_MEMBER_FIELDS = {"Testfeld": "wert1", "Testfeld2": "wert2"}
 
         member = self.api.add_group_member(
             group_id=SAMPLE_GROUP_ID,
             person_id=SAMPLE_PERSON_ID,
             grouptype_role_id=SAMPLE_GROUPTYPE_ROLE_ID,
+            fields=SAMPLE_GROUP_MEMBER_FIELDS,
             group_member_status="active",
         )
         assert member is not None
