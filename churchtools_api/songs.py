@@ -192,6 +192,50 @@ class ChurchToolsApiSongs(ChurchToolsApiAbstract):
 
         logger.warning("missing argument longname or shortname required")
         return None
+    
+    def create_song_rest(  # noqa: PLR0913
+        self,
+        title: str,
+        songcategory_id: int,
+        author: str = "",
+        copyright: str = "",  # noqa: A002
+        ccli: str = "",
+        should_practice: bool = False,
+    ) -> dict | None:
+        """Method to create a new song using REST API.
+
+        Does not check for existing duplicates !
+
+        Arguments:
+            title: Title of the Song
+            songcategory_id: int id of site specific songcategories
+                (created in CT Metadata) - required
+            author: name of author or authors, ideally
+                comma separated if multiple - optional
+            copyright: name of organization responsible
+                for rights distribution - optional
+            ccli: CCLI ID see songselect.ccli.com/ - using "-"
+                if empty on purpose - optional
+        Returns:
+            song: ChurchTools song object of the Song created or None if not successful
+        """
+        url = self.domain + "/api/songs"
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
+        data = {
+            "name": title,
+            "categoryId": songcategory_id,
+            "author": author,
+            "copyright": copyright,
+            "ccli": ccli,
+            "shouldPractice": should_practice,
+        }
+        response = self.session.post(url=url, headers=headers, json=data)
+        if response.status_code == requests.codes.created:
+            response_content = json.loads(response.content)
+            logger.debug("Song created successful with ID=%s", response_content["data"]["id"])
+            return response_content["data"] 
+        logger.info("Creating song failed with %s", response.status_code)
+        return None
 
     def create_song(  # noqa: PLR0913
         self,
@@ -481,13 +525,75 @@ class ChurchToolsApiSongs(ChurchToolsApiAbstract):
             for arrangement in song["arrangements"]
             if song["arrangements"][0]["isDefault"]
         )
+    
+    def create_song_arrangement_rest(self, 
+                                     song_id: int,
+                                     arrangement_name: str,
+                                     beat: str = None,
+                                     description: str = None,
+                                     duration: str = None,
+                                     key: str = None,
+                                     source_id: int = None,
+                                     source_ref: str = None,
+                                     tempo: int = None) -> dict | None:
+        """Creates a new song arrangment using REST API.
+
+        Arguments:
+            song_id: id of the song which should be modified
+            arrangement_name: human readable name of the arrangement to be created
+        
+
+        Returns:
+            arrangement: ChurchTools song arrangement object or None if not successful
+        """
+        url = self.domain + f"/api/songs/{song_id}/arrangements"
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
+        data = {
+            "name": arrangement_name,
+            "beat": beat,
+            "description": description,
+            "duration": duration,
+            "key": key,
+            "sourceId": source_id,
+            "sourceReference": source_ref,
+            "tempo": tempo,
+        }
+        response = self.session.post(url=url, headers=headers, json=data)
+        response_content = None
+        if response.status_code == requests.codes.created:
+            response_content = json.loads(response.content)
+            logger.debug("Song arrangement created successful with ID=%s", response_content["data"]["id"])
+            return response_content["data"]
+        logger.info("Creating song arrangement failed with %s", response.status_code)
+        return None
+    
+    def set_song_arrangement_as_default(self, song_id: int, arrangement_id: int) -> bool:
+        """Sets a specific arrangement as default for a song using REST API.
+
+        Arguments:
+            song_id: id of the song which should be modified
+            arrangement_id: id of the arrangement to be set as default  
+        Returns:
+            if successful
+        """       
+        url = self.domain + f"/api/songs/{song_id}/arrangements/{arrangement_id}/default"
+        headers = {"accept": "application/json"}
+        response = self.session.patch(url=url, headers=headers)
+        if response.status_code == requests.codes.no_content:
+            logger.debug("Set arrangement ID=%s as default successful", arrangement_id)
+            return True
+        logger.info("Setting arrangement as default failed with %s", response.status_code)
+        return False
 
     def create_song_arrangement(self, song_id: int, arrangement_name: str) -> int:
         """Creates a new song arrangment.
 
         Arguments:
             song_id: id of the song which should be modified
+        
+        Kwargs:
             arrangement_name: human readable name of the arrangement to be created
+
 
         Returns:
             arrangement_id
